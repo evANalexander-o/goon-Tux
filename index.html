@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KENT-OS // Eksplorasi PC, OS & Linux</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Archivo:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.263.1/dist/umd/lucide.min.js"></script>
+<style>
+:root{--bg:#0f1211;--panel:#171b19;--line:#2b322f;--ink:#d8e0dc;--dim:#7f8c86;--g:#00ff66;--c:#00e5ff;--r:#ff3b5c;
+--mono:'JetBrains Mono',ui-monospace,monospace;--sans:'Archivo',system-ui,sans-serif}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--sans)}
+body{background-image:radial-gradient(#26302b 1px,transparent 1px);background-size:22px 22px}
+.mono{font-family:var(--mono)}
+#wall{position:fixed;right:24px;bottom:72px;font:700 clamp(18px,3vw,40px)/1.1 var(--mono);color:#1c2420;text-align:right;pointer-events:none;user-select:none}
+#icons{position:fixed;left:14px;top:14px;display:flex;flex-direction:column;gap:12px}
+.ico{width:84px;padding:10px 4px 8px;background:var(--panel);border:2px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:6px;font:12px var(--mono);transition:transform .12s,box-shadow .12s,border-color .12s}
+.ico:hover,.ico:focus-visible{transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--g);border-color:var(--g);outline:none}
+.ico:active{transform:translate(2px,2px);box-shadow:none}
+.ico svg{width:26px;height:26px;color:var(--c)}
+.win{position:absolute;display:none;flex-direction:column;background:var(--panel);border:2px solid var(--line);box-shadow:8px 8px 0 #000;max-width:calc(100vw - 8px);max-height:calc(100vh - 56px)}
+.win.open{display:flex;animation:pop .14s ease-out}
+.win.min{display:none}
+.win.active{border-color:var(--g);box-shadow:8px 8px 0 rgba(0,255,102,.35)}
+@keyframes pop{from{transform:scale(.96) translateY(6px);opacity:.3}}
+.bar{display:flex;align-items:center;gap:8px;padding:6px 8px 6px 12px;background:#0a0d0c;border-bottom:2px solid var(--line);cursor:grab;font:700 12px var(--mono);touch-action:none;user-select:none}
+.win.active .bar{border-bottom-color:var(--g)}
+.bar span{flex:1}
+.wb{width:22px;height:22px;border:2px solid var(--line);display:grid;place-items:center;font:700 11px var(--mono);color:var(--dim);transition:.1s}
+.wb:hover{border-color:var(--c);color:var(--c)}.wb.x:hover{border-color:var(--r);color:var(--r);background:#2a0d13}
+.body{flex:1;overflow:auto;min-height:0}
+/* terminal */
+#out{white-space:pre-wrap;word-break:break-word;line-height:1.45}
+.pu{color:var(--g)}.pp{color:var(--c)}.dim{color:var(--dim)}.err{color:var(--r)}
+#cmd{flex:1;background:transparent;border:0;outline:0;color:var(--ink);font:inherit;caret-color:var(--g)}
+.shake{animation:shake .12s 8}
+@keyframes shake{25%{transform:translate(-3px,2px)}75%{transform:translate(3px,-2px)}}
+/* tiles & buttons */
+.tile{border:2px solid var(--line);background:#0f1311;padding:10px;text-align:left;transition:transform .12s,box-shadow .12s,border-color .12s;font:12px var(--mono)}
+.tile:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--c);border-color:var(--c)}
+.tile.sel{border-color:var(--g);box-shadow:4px 4px 0 var(--g);transform:translate(-2px,-2px)}
+.tile svg{width:22px;height:22px;color:var(--g);margin-bottom:4px}
+.btn{border:2px solid var(--g);color:var(--g);padding:8px 14px;font:700 12px var(--mono);transition:.12s}
+.btn:hover{background:var(--g);color:#000;box-shadow:4px 4px 0 #000}
+.btn:active{transform:translate(2px,2px)}
+.opt{display:block;width:100%;text-align:left;border:2px solid var(--line);padding:12px 14px;margin-top:10px;transition:.12s;background:#0f1311}
+.opt:hover{border-color:var(--c);transform:translateX(4px);box-shadow:-4px 0 0 var(--c)}
+/* timeline */
+.tl{position:relative;padding-left:26px;border-left:2px dashed var(--line);margin-left:8px}
+.ev{position:relative;margin-bottom:12px}
+.ev::before{content:'';position:absolute;left:-34px;top:12px;width:12px;height:12px;background:var(--bg);border:2px solid var(--g);transition:.15s}
+.ev.open::before,.ev:hover::before{background:var(--g)}
+.ev button{width:100%;text-align:left;padding:8px 10px;border:2px solid transparent}
+.ev button:hover{border-color:var(--line)}
+.ev .more{display:none;padding:0 10px 10px;color:#b4c0ba;font-size:14px;line-height:1.55}
+.ev.open .more{display:block}
+#tasks{display:flex;gap:6px;flex:1;overflow-x:auto}
+.task{border:2px solid var(--line);padding:4px 10px;font:12px var(--mono);white-space:nowrap}
+.task.on{border-color:var(--g);color:var(--g)}
+#menu{position:fixed;left:8px;bottom:54px;background:var(--panel);border:2px solid var(--g);box-shadow:6px 6px 0 #000;display:none;min-width:210px;z-index:9999}
+#menu.show{display:block}
+#menu button{display:flex;gap:10px;align-items:center;width:100%;padding:10px 14px;font:13px var(--mono);text-align:left}
+#menu button:hover{background:var(--g);color:#000}#menu svg{width:16px;height:16px}
+:focus-visible{outline:2px solid var(--c);outline-offset:2px}
+@media(max-width:700px){#icons{display:none}.win{left:8px!important;top:8px!important;width:calc(100% - 16px)!important;height:calc(100% - 64px)!important}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="wall">$ sudo apt install<br>rasa-penasaran</div>
+<nav id="icons"></nav>
+<div id="menu"></div>
+<footer class="fixed bottom-0 left-0 right-0 h-12 flex items-center gap-3 px-2 bg-[#0a0d0c] border-t-2 border-[#2b322f] z-[9998]">
+  <button id="start" class="btn flex items-center gap-2 !py-1"><i data-lucide="terminal-square"></i> KENT-OS</button>
+  <div id="tasks"></div>
+  <button id="snd" class="wb !w-8 !h-8" title="Suara klik on/off"><i data-lucide="volume-2"></i></button>
+  <time id="clock" class="mono text-xs text-[#7f8c86]"></time>
+</footer>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const icons=()=>window.lucide&&lucide.createIcons();
+
+/* ---------- suara klik mekanikal (opsional) ---------- */
+let actx,soundOn=true;
+function beep(f=200,d=.05){
+  if(!soundOn)return;
+  try{
+    actx=actx||new(window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.type='square';o.frequency.value=f;
+    g.gain.setValueAtTime(.035,actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+d);
+    o.connect(g).connect(actx.destination);o.start();o.stop(actx.currentTime+d);
+  }catch(e){}
+}
+document.addEventListener('pointerdown',e=>{if(e.target.closest('button'))beep(150+Math.random()*70)});
+$('#snd').onclick=()=>{soundOn=!soundOn;$('#snd').style.opacity=soundOn?1:.4};
+
+/* ---------- window manager ---------- */
+let z=10;const wins=[];
+function mk(id,title,icon,w,h,inner){
+  const el=document.createElement('section');
+  el.className='win';el.id='w-'+id;el.dataset.title=title;
+  el.style.width=w+'px';el.style.height=h+'px';
+  el.style.left=(110+wins.length*38)+'px';el.style.top=(24+wins.length*34)+'px';
+  el.innerHTML=`<div class="bar"><i data-lucide="${icon}" class="w-4 h-4 text-[#00e5ff]"></i><span>${title}</span>
+    <button class="wb" data-a="min" title="Sembunyikan">_</button><button class="wb x" data-a="close" title="Tutup">x</button></div>
+    <div class="body">${inner}</div>`;
+  document.body.appendChild(el);wins.push(el);
+  const bar=$('.bar',el);
+  bar.addEventListener('pointerdown',e=>{
+    if(e.target.closest('button')||innerWidth<700)return;
+    const r=el.getBoundingClientRect(),dx=e.clientX-r.left,dy=e.clientY-r.top;
+    bar.setPointerCapture(e.pointerId);bar.style.cursor='grabbing';
+    const mv=ev=>{el.style.left=Math.max(0,Math.min(innerWidth-120,ev.clientX-dx))+'px';el.style.top=Math.max(0,Math.min(innerHeight-100,ev.clientY-dy))+'px'};
+    const up=()=>{bar.style.cursor='';bar.removeEventListener('pointermove',mv);bar.removeEventListener('pointerup',up)};
+    bar.addEventListener('pointermove',mv);bar.addEventListener('pointerup',up);
+  });
+  el.addEventListener('pointerdown',()=>focusWin(el));
+  $('[data-a=close]',el).onclick=()=>{el.classList.remove('open','active','min');tasks()};
+  $('[data-a=min]',el).onclick=()=>{el.classList.add('min');el.classList.remove('active');tasks()};
+  return el;
+}
+function focusWin(w){w.style.zIndex=++z;wins.forEach(x=>x.classList.toggle('active',x===w));tasks()}
+function openWin(id){
+  const w=$('#w-'+id);w.classList.add('open');w.classList.remove('min');focusWin(w);
+  $('#menu').classList.remove('show');if(id==='term')$('#cmd').focus();
+}
+function tasks(){
+  const t=$('#tasks');t.innerHTML='';
+  wins.filter(w=>w.classList.contains('open')).forEach(w=>{
+    const b=document.createElement('button');
+    b.className='task'+(w.classList.contains('active')?' on':'');b.textContent=w.dataset.title;
+    b.onclick=()=>openWin(w.id.slice(2));t.appendChild(b);
+  });
+}
+
+/* ---------- 1. terminal ---------- */
+mk('term','terminal.sh','terminal',560,400,`
+  <div class="p-3 mono text-[13px] bg-[#070908] min-h-full" id="tbox">
+    <div id="out"></div>
+    <label class="flex gap-2"><span class="pu">kent@kent-os</span><span class="pp">~$</span><input id="cmd" autocomplete="off" spellcheck="false" aria-label="perintah terminal"></label>
+  </div>`);
+const out=$('#out'),cmd=$('#cmd'),hist=[];let hi=0;
+function print(h,c=''){const d=document.createElement('div');d.className=c;d.innerHTML=h;out.appendChild(d);$('.body',$('#w-term')).scrollTop=1e6}
+const FILES={
+  'README.md':'Selamat datang di KENT-OS. Ketik "help" kalau bingung mau ngapain.',
+  'kernel.txt':'Kernel = jembatan antara aplikasi dan hardware. Tanpa dia, semua cuma besi mahal.',
+  'rahasia.txt':'Rahasia: 90% "ahli Linux" itu cuma jago googling error dengan cepat.'};
+const CMDS={
+  help:()=>print(`Perintah yang tersedia:\n<span class="pu">help</span> <span class="pu">neofetch</span> <span class="pu">ls</span> <span class="pu">cat &lt;file&gt;</span> <span class="pu">whoami</span> <span class="pu">about-linux</span> <span class="pu">date</span> <span class="pu">echo</span> <span class="pu">clear</span>\nAda satu perintah yang jangan dicoba... atau coba aja. 😈`),
+  ls:()=>print(Object.keys(FILES).join('   ')+'   <span class="pp">distros/</span>'),
+  clear:()=>{out.innerHTML=''},
+  whoami:()=>print('kent — penjelajah gabut yang akhirnya mampir ke dunia open source.'),
+  date:()=>print(new Date().toString()),
+  pwd:()=>print('/home/kent'),
+  neofetch:()=>print(`<div class="flex gap-4 flex-wrap"><pre class="pu">${esc(String.raw`    .--.
+   |o_o |
+   |:_/ |
+  //   \ \
+ (|     | )
+/'\_   _/'\
+\___)=(___/`)}</pre><div>
+<span class="pu">kent</span>@<span class="pu">kent-os</span>
+<span class="dim">-----------------</span>
+<span class="pp">OS</span>: KENT-OS (numpang di browser)
+<span class="pp">Kernel</span>: ${esc(navigator.platform||'rahasia')}
+<span class="pp">CPU</span>: ${navigator.hardwareConcurrency||'?'} core
+<span class="pp">Layar</span>: ${innerWidth}x${innerHeight}
+<span class="pp">Shell</span>: bash (pura-pura)
+<span class="pp">Mood</span>: siap ngulik</div></div>`),
+  'about-linux':()=>print(`Linux sebenarnya cuma <span class="pu">kernel</span> bikinan Linus Torvalds (1991). Yang kamu install itu "distro": kernel + tools GNU + desktop + paket aplikasi.\nGratis, open source, dan jalan di HP (Android), server, sampai Mars (helikopter Ingenuity pakai Linux).`),
+  echo:a=>print(esc(a.join(' '))),
+  cat:a=>print(FILES[a[0]]?esc(FILES[a[0]]):`cat: ${esc(a[0]||'')}: nggak ada file itu, bro`,FILES[a[0]]?'':'err'),
+};
+function nuke(){
+  const seq=['rm: menghapus /bin ... ok','rm: menghapus /home ... ok','rm: menghapus /etc ... ok','rm: menghapus /kenangan_mantan ... ok','<span class="err">KERNEL PANIC: not syncing: terlalu pede</span>'];
+  seq.forEach((l,i)=>setTimeout(()=>print(l),i*450));
+  setTimeout(()=>{document.body.classList.add('shake')},seq.length*450);
+  setTimeout(()=>{document.body.classList.remove('shake');out.innerHTML='';print('<span class="pu">Bercanda doang. 😄 Sistemnya aman, ini cuma simulasi.</span>\nTapi di Linux beneran, perintah ini emang bisa menghapus semuanya. Jangan pernah dicoba di mesin asli.')},seq.length*450+1000);
+}
+function run(line){
+  print(`<span class="pu">kent@kent-os</span> <span class="pp">~$</span> ${esc(line)}`);
+  const [c,...a]=line.trim().split(/\s+/);if(!c)return;
+  if(/^sudo rm -rf \/(\s|\*|$)/.test(line.trim()))return nuke();
+  if(/^rm -rf/.test(line.trim()))return print('rm: permission denied. Untung nggak pakai sudo.','err');
+  (CMDS[c]||(()=>print(`${esc(c)}: command not found. Coba "help".`,'err')))(a);
+}
+cmd.addEventListener('keydown',e=>{
+  beep(300+Math.random()*80,.03);
+  if(e.key==='Enter'){const v=cmd.value;cmd.value='';if(v.trim())hist.push(v);hi=hist.length;run(v)}
+  else if(e.key==='ArrowUp'){e.preventDefault();if(hi>0)cmd.value=hist[--hi]}
+  else if(e.key==='ArrowDown'){e.preventDefault();cmd.value=hist[++hi]||'';hi=Math.min(hi,hist.length)}
+  else if(e.key==='Tab'){e.preventDefault();const m=Object.keys(CMDS).filter(k=>k.startsWith(cmd.value));if(m.length===1)cmd.value=m[0]}
+});
+$('#tbox').onclick=()=>cmd.focus();
+print('KENT-OS v1.0 — ketik <span class="pu">help</span> buat mulai. (Tab = autocomplete, panah atas = riwayat)\n');
+
+/* ---------- 2. hardware explorer ---------- */
+const HW={
+ cpu:['cpu','CPU','Otak PC',`Dia yang ngitung semuanya: buka aplikasi, jalanin game, sampai ngatur kapan Chrome boleh makan RAM. Makin banyak core, makin jago ngerjain banyak hal sekaligus. Bayangin koki di dapur: core banyak = koki banyak, pesanan nggak numpuk.`],
+ ram:['memory-stick','RAM','Meja kerja sementara',`Tempat data yang lagi dipakai sekarang. Cepat banget, tapi amnesia: matiin PC, isinya hilang. RAM kecil = PC ngos-ngosan kalau tab-nya 47 biji. Kalau lemot, cek ini dulu.`],
+ gpu:['monitor-play','GPU','Tukang gambar & game',`Spesialis grafis. Dia ngerjain ribuan hitungan kecil paralel, makanya jago render game, edit video, dan akhir-akhir ini training AI. Tanpa GPU khusus pun PC tetap jalan, grafisnya numpang di CPU.`],
+ mobo:['circuit-board','Motherboard','Jalan tol semua komponen',`Papan besar tempat semuanya ditancepin. Dia yang bikin CPU, RAM, GPU, dan SSD bisa ngobrol. Pilih yang salah, komponen incaranmu bisa nggak muat (socket-nya beda!).`],
+ ssd:['hard-drive','Storage (SSD)','Lemari penyimpanan',`Tempat OS, aplikasi, dan foto liburanmu tinggal permanen. SSD jauh lebih ngebut dari HDD jadul: booting dari menit jadi hitungan detik. Upgrade paling terasa per rupiah.`],
+ psu:['zap','PSU','Jantung listrik',`Mengubah listrik tembok jadi tegangan yang aman buat komponen. Jangan pelit di sini: PSU murahan yang rusak bisa ikut membawa komponen lain ke alam baka.`]};
+const tiles=Object.entries(HW).map(([k,v])=>`<button class="tile" data-k="${k}" style="grid-area:${k}"><i data-lucide="${v[0]}"></i><div class="font-bold">${v[1]}</div><div class="dim">${v[2]}</div></button>`).join('');
+mk('hw','hardware-explorer','cpu',580,470,`<div class="p-4">
+  <p class="text-sm text-[#b4c0ba] mb-3">Klik komponen buat tahu fungsinya.</p>
+  <div class="grid gap-3" style="grid-template-areas:'cpu cpu ram' 'gpu gpu ssd' 'psu mobo mobo';grid-template-columns:repeat(3,1fr)">${tiles}</div>
+  <div id="hwinfo" class="mt-4 p-3 border-2 border-dashed border-[#2b322f] text-sm leading-relaxed min-h-[90px] text-[#7f8c86]">Belum ada yang dipilih. Coba klik CPU.</div></div>`);
+$$('.tile[data-k]').forEach(t=>t.onclick=()=>{
+  $$('.tile[data-k]').forEach(x=>x.classList.toggle('sel',x===t));
+  const v=HW[t.dataset.k];
+  $('#hwinfo').innerHTML=`<b class="mono text-[#00ff66]">${v[1]} — ${v[2]}</b><p class="mt-2 text-[#d8e0dc]">${v[3]}</p>`;
+});
+
+/* ---------- 3. distro finder ---------- */
+const D={
+ mint:{n:'Linux Mint',d:'Tampilannya mirip Windows, jalan stabil, dan hampir nggak butuh setting. Cocok buat yang cuma mau PC-nya kerja tanpa drama.',iso:'linuxmint-22-cinnamon-64bit.iso'},
+ ubuntu:{n:'Ubuntu',d:'Distro paling populer. Komunitas raksasa, jadi hampir semua error sudah ada jawabannya di internet. Pilihan aman buat pemula.',iso:'ubuntu-24.04-desktop-amd64.iso'},
+ fedora:{n:'Fedora',d:'Selalu dapat teknologi terbaru tapi tetap rapi. Favorit developer yang mau fitur baru tanpa harus ngoprek sampai pagi.',iso:'Fedora-Workstation-Live.iso'},
+ debian:{n:'Debian',d:'Si batu karang. Super stabil, jadi dasar banyak distro lain (Ubuntu dan Mint turunannya!). Cocok buat server dan yang anti kejutan.',iso:'debian-12-amd64-netinst.iso'},
+ arch:{n:'Arch Linux',d:'Install dari nol, pasang cuma yang kamu mau. Capek di awal, tapi kamu bakal paham sistemmu luar dalam. "I use Arch, btw."',iso:'archlinux-x86_64.iso',extra:'archinstall   # dijalankan dari live ISO'}};
+const Q=[
+ ['Seberapa suka kamu utak-atik sistem?',[['Pokoknya nyala dan jalan',{mint:2,ubuntu:2,debian:1}],['Sesekali, asal ada panduan',{fedora:2,ubuntu:1,mint:1,debian:1}],['Suka bangun semuanya dari nol',{arch:3}]]],
+ ['Mau dipakai buat apa?',[['Kuliah, kantoran, nonton, santai',{mint:2,ubuntu:2}],['Ngoding dengan tools terbaru',{fedora:2,arch:1,ubuntu:1}],['Server atau mesin yang harus stabil lama',{debian:3}]]],
+ ['Laptop/PC kamu kondisinya?',[['Jadul, spek pas-pasan',{mint:2,debian:1}],['Standar-standar aja',{ubuntu:1,fedora:1,mint:1}],['Baru dan kenceng, siap digas',{arch:2,fedora:1}]]]];
+mk('quiz','distro-finder','compass',520,480,`<div class="p-4" id="qbox"></div>`);
+let qi=0,score={};
+function quiz(){
+  const b=$('#qbox');
+  if(qi>=Q.length){
+    const top=Object.entries(score).sort((a,b)=>b[1]-a[1])[0][0],d=D[top];
+    const cmdTxt=`sudo dd if=~/Downloads/${d.iso} of=/dev/sdX bs=4M status=progress oflag=sync`+(d.extra?`\n${d.extra}`:'');
+    b.innerHTML=`<div class="mono text-xs dim">Hasil cocok kamu:</div>
+      <h2 class="text-4xl font-extrabold text-[#00ff66] my-2">${d.n}</h2>
+      <p class="text-[#b4c0ba] leading-relaxed">${d.d}</p>
+      <pre class="mono text-xs bg-black border-2 border-[#2b322f] p-3 my-4 whitespace-pre-wrap break-all" id="icmd">${esc(cmdTxt)}</pre>
+      <p class="text-xs dim mb-3">Perintah di atas menulis ISO ke flashdisk. Ganti <b>sdX</b> dengan flashdiskmu (cek pakai <code>lsblk</code>). Salah drive = data hilang!</p>
+      <div class="flex gap-2"><button class="btn" id="cp">Salin perintah instalasi</button><button class="btn !border-[#00e5ff] !text-[#00e5ff]" id="rs">Ulangi kuis</button></div>`;
+    $('#cp').onclick=async e=>{
+      try{await navigator.clipboard.writeText(cmdTxt)}catch{const t=document.createElement('textarea');t.value=cmdTxt;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove()}
+      e.target.textContent='Tersalin!';setTimeout(()=>e.target.textContent='Salin perintah instalasi',1500)};
+    $('#rs').onclick=()=>{qi=0;score={};quiz()};return;
+  }
+  const [q,opts]=Q[qi];
+  b.innerHTML=`<div class="mono text-xs dim mb-1">Pertanyaan ${qi+1} dari ${Q.length}</div>
+    <div class="flex gap-1 mb-4">${Q.map((_,i)=>`<div class="h-2 flex-1 border border-[#2b322f] ${i<=qi?'bg-[#00ff66]':''}"></div>`).join('')}</div>
+    <h3 class="text-xl font-bold">${q}</h3>${opts.map((o,i)=>`<button class="opt" data-i="${i}">${o[0]}</button>`).join('')}`;
+  $$('.opt',b).forEach(o=>o.onclick=()=>{
+    const w=opts[o.dataset.i][1];for(const k in w)score[k]=(score[k]||0)+w[k];qi++;quiz()});
+}
+quiz();
+
+/* ---------- 4. timeline ---------- */
+const TL=[
+ ['1969','Unix lahir','Ken Thompson dan Dennis Ritchie di Bell Labs bikin Unix, sistem operasi yang idenya (file, pipe, tool kecil) masih dipakai sampai sekarang.'],
+ ['1983','Proyek GNU','Richard Stallman mulai bikin sistem operasi bebas. Hampir semua tool-nya jadi, tapi kernel-nya belum kelar.'],
+ ['1991','Linux muncul','Mahasiswa Finlandia, Linus Torvalds, ngumumin kernel "cuma hobi, nggak bakal besar dan profesional kayak GNU". Ternyata... salah besar.'],
+ ['1993','Debian & Slackware','Distro-distro tertua yang masih hidup lahir. Debian sampai sekarang jadi fondasi banyak distro lain.'],
+ ['1996','Tux jadi maskot','Pinguin gemuk nan imut terpilih jadi maskot Linux. Katanya Linus pernah digigit pinguin di Australia.'],
+ ['2004','Ubuntu rilis','Linux akhirnya ramah buat orang awam: install gampang, rilis rutin, desktop rapi.'],
+ ['2008','Android','Dibangun di atas kernel Linux. Tanpa sadar, miliaran orang pakai Linux tiap hari di saku mereka.'],
+ ['2018','Proton & Steam Play','Game Windows mulai jalan mulus di Linux. Alasan "nggak bisa main game" makin lemah.'],
+ ['2022','Steam Deck','Konsol genggam Valve jalan di Linux. Gaming di Linux resmi masuk arus utama.'],
+ ['Kini','Ada di mana-mana','Server, cloud, superkomputer (semua 500 teratas pakai Linux), mobil, sampai robot. Dunia modern jalan di atasnya.']];
+mk('tl','timeline.log','git-commit',500,460,`<div class="p-4"><p class="text-sm dim mb-4">Klik tiap titik buat baca ceritanya.</p><div class="tl">${
+  TL.map(e=>`<div class="ev"><button><span class="mono text-[#00e5ff] font-bold">${e[0]}</span> <b class="ml-2">${e[1]}</b></button><div class="more">${e[2]}</div></div>`).join('')}</div></div>`);
+$$('.ev button').forEach(b=>b.onclick=()=>b.parentElement.classList.toggle('open'));
+
+/* ---------- desktop, menu, jam ---------- */
+const APPS=[['term','Terminal','terminal'],['hw','Hardware','cpu'],['quiz','Distro','compass'],['tl','Timeline','git-commit']];
+$('#icons').innerHTML=APPS.map(a=>`<button class="ico" data-id="${a[0]}"><i data-lucide="${a[2]}"></i>${a[1]}</button>`).join('');
+$('#menu').innerHTML=APPS.map(a=>`<button data-id="${a[0]}"><i data-lucide="${a[2]}"></i>${a[1]}</button>`).join('');
+$$('[data-id]').forEach(b=>b.onclick=()=>openWin(b.dataset.id));
+$('#start').onclick=e=>{e.stopPropagation();$('#menu').classList.toggle('show')};
+document.addEventListener('click',e=>{if(!e.target.closest('#menu'))$('#menu').classList.remove('show')});
+const tick=()=>$('#clock').textContent=new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+tick();setInterval(tick,15000);
+icons();openWin('term');
+// TODO: tambah window "Tentang" nanti kalau sempat, sekarang udah cukup keren
+</script>
+</body>
+</html>
